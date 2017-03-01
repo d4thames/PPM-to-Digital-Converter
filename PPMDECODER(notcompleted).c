@@ -114,38 +114,7 @@ int main(void)
 		}
 		
 		for (i=0; i<=NUM_PULSE_PER_FRAME;i++) {
-			if ((800 < inPW[i]) && (inPW[i] <= 844)) digitalData[i] = DecimaltoBinary(0);
-			else if ((845 <= inPW[i]) && (inPW[i] <= 888)) digitalData[i] = DecimaltoBinary(1);
-			else if ((889 <= inPW[i]) && (inPW[i] <= 932)) digitalData[i] = DecimaltoBinary(2);
-			else if ((933 <= inPW[i]) && (inPW[i] <= 976)) digitalData[i] = DecimaltoBinary(3);
-			else if ((977 <= inPW[i]) && (inPW[i] <= 1020)) digitalData[i] = DecimaltoBinary(4);
-			else if ((1021 <= inPW[i]) && (inPW[i] <= 1064)) digitalData[i] = DecimaltoBinary(5);
-			else if ((1065 <= inPW[i]) && (inPW[i] <= 1108)) digitalData[i] = DecimaltoBinary(6);
-			else if ((1109 <= inPW[i]) && (inPW[i] <= 1152)) digitalData[i] = DecimaltoBinary(7);
-			else if ((1153 <= inPW[i]) && (inPW[i] <= 1196)) digitalData[i] = DecimaltoBinary(8);
-			else if ((1197 <= inPW[i]) && (inPW[i] <= 1240)) digitalData[i] = DecimaltoBinary(9);
-			else if ((1241 <= inPW[i]) && (inPW[i] <= 1184)) digitalData[i] = DecimaltoBinary(10);
-			else if ((1185 <= inPW[i]) && (inPW[i] <= 1328)) digitalData[i] = DecimaltoBinary(11);
-			else if ((1329 <= inPW[i]) && (inPW[i] <= 1372)) digitalData[i] = DecimaltoBinary(12);
-			else if ((1373 <= inPW[i]) && (inPW[i] <= 1416)) digitalData[i] = DecimaltoBinary(13);
-			else if ((1417 <= inPW[i]) && (inPW[i] <= 1460)) digitalData[i] = DecimaltoBinary(14);
-			else if ((1461 <= inPW[i]) && (inPW[i] <= 1504)) digitalData[i] = DecimaltoBinary(15);
-			else if ((1505 <= inPW[i]) && (inPW[i] <= 1548)) digitalData[i] = DecimaltoBinary(16);
-			else if ((1549 <= inPW[i]) && (inPW[i] <= 1592)) digitalData[i] = DecimaltoBinary(17);
-			else if ((1593 <= inPW[i]) && (inPW[i] <= 1636)) digitalData[i] = DecimaltoBinary(18);
-			else if ((1637 <= inPW[i]) && (inPW[i] <= 1680)) digitalData[i] = DecimaltoBinary(19);
-			else if ((1681 <= inPW[i]) && (inPW[i] <= 1724)) digitalData[i] = DecimaltoBinary(20);
-			else if ((1725 <= inPW[i]) && (inPW[i] <= 1768)) digitalData[i] = DecimaltoBinary(21);
-			else if ((1769 <= inPW[i]) && (inPW[i] <= 1812)) digitalData[i] = DecimaltoBinary(22);
-			else if ((1813 <= inPW[i]) && (inPW[i] <= 1856)) digitalData[i] = DecimaltoBinary(23);
-			else if ((1857 <= inPW[i]) && (inPW[i] <= 1900)) digitalData[i] = DecimaltoBinary(24);
-			else if ((1901 <= inPW[i]) && (inPW[i] <= 1944)) digitalData[i] = DecimaltoBinary(25);
-			else if ((1945 <= inPW[i]) && (inPW[i] <= 1988)) digitalData[i] = DecimaltoBinary(26);
-			else if ((1989 <= inPW[i]) && (inPW[i] <= 2032)) digitalData[i] = DecimaltoBinary(27);
-			else if ((2033 <= inPW[i]) && (inPW[i] <= 2076)) digitalData[i] = DecimaltoBinary(28);
-			else if ((2077 <= inPW[i]) && (inPW[i] <= 2120)) digitalData[i] = DecimaltoBinary(29);
-			else if ((2121 <= inPW[i]) && (inPW[i] <= 2164)) digitalData[i] = DecimaltoBinary(30);
-			else if ((2165 <= inPW[i]) && (inPW[i] <= 2200)) digitalData[i] = DecimaltoBinary(31);
+			digitalData[i] = DecimalToBinary(inPW[i]-800)/44
 		} // convert into 5 bits data
 	}
 }		
