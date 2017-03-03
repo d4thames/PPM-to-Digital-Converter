@@ -1,5 +1,5 @@
-/** original version: PPMDECODER.c
-
+/** Ideas on PPM decoder is from 
+http://diydrones.com/profiles/blogs/decoding-multichannel-ppm
 */
 
 #include <avr/io.h>
@@ -24,23 +24,12 @@
 #define MIN_NUM_VALID_FRAMES 2 // number of valid frames required to switch back from NORC
 #define MAX_NUM_INVALID_FRAMES 4 // number of invalid frames required to switch to NORC
 
-#define STATE_NORC 0 // no valid ppm, use neutral value
-#define STATE_MANUAL 1 // valid ppm
-
-#define MAX_TWI_MSG_LEN 21
-#define
-
-#define TWI_ACK _BV(TWINT)|_BV(TWEA)|_BV(TWIE)|_BV(TWEN) // TWINT=Interrupt flag,TWEA=Enable acknowledge,TWIE=Interrupt enable,TWEN=TWI enable
 
 uint16_t inPW[NUM_PULSE_PER_FRAME]; // servo values from R/C receiver
 uint16_t digitalData[NUM_PULSE_PER_FRAME]; // 5 bits control data
 uint16_t neutralPW[NUM_PULSE_PER_FRAME] = NEUTRAL_PULSE_LEN; // neutral servo values
 uint16_t stat[NUM_PULSE_PER_FRAME];
 
-volatile uint8_t CurrentState = STATE_NORC;
-
-volatile uint8_t i2cIn[MAX_TWI_MSG_LEN];
-valatile uint8_t i2cFinished = 0;
 
 uint16_t DecimaltoBinary(const uint8_t Decnumber)
 {
@@ -54,7 +43,7 @@ uint16_t DecimaltoBinary(const uint8_t Decnumber)
 	}
 	return Result;
 }
-	static inline uint8_t ValidPulseLen (const uint16_t pulseLen)
+static inline uint8_t ValidPulseLen (const uint16_t pulseLen)
 {
 	return (pulseLen > MIN_PULSE_LEN && pulseLen < MAX_PULSE_LEN);
 }
@@ -69,13 +58,9 @@ int main(void)
 	
 	uint8_t validSync = 0;
 	
-	uint8_t invalidFrameCount = 0;
-	uint8_t validFrameCount = 0;
 	
 	// Power and noise reduction
 	PRR = _BV(PRTIM2)|_BV(PRTIM0)|_BV(PRSPI)|_BV(PRUSART0)|_BV(PRADC);
-	
-	i2cIn[0] = 0x80;
 	
 	DDRB = 0b00000010;
 	
@@ -83,9 +68,6 @@ int main(void)
 	
 	TCCR1B = (0 << ICES1)|_BV(CS11); //prescaler 8, input capture according to PPM negative edge
 	
-	TWCR = _BV(TWEN)|_BV(TWIE)|_BV(TWINT)|_BV(TWEA)|_BV(TWSTA)|_BV(TWSTO)|_BV(TWWC);
-	
-	sei();
 	
 	while (1) {
 		if (TIFR1 & _BV(ICF1)) {
@@ -97,13 +79,6 @@ int main(void)
 				//sync detected
 				inFrameLen = currIcrTime - inSyncTime;
 				inSyncTime = currIcrTime;
-				if (validSync && (inFrameLen > MIN_FRAME_LEN) && (inFrameLen < MAX_FRAME_LEN) && (inPulseCount == NUM_PULSE_PER_FRAME)) {
-					invalidFrameCount = 0;
-					if (validFrameCount < MIN_NUM_VALID_FRAMES) validFrameCount++;
-				} else {
-					validFrameCount = 0;
-					if (invalidFrameCount < MAX_NUM_INVALID_FRAMES) invalidFrameCount++;
-				}
 				validSync = 1;
 				inPulseCount = 0;
 			} else if (validSync && ValidPulseLen(PulseLen) && (inPulseCount < NUM_PULSE_PER_FRAME)) {
@@ -117,6 +92,22 @@ int main(void)
 			digitalData[i] = DecimalToBinary(inPW[i]-800)/44
 		} // convert into 5 bits data
 	}
+}
+void init_stdio2uart0(void)
+{
+	// configure UART0 baud rate, one start bit, 8-bit, no parity and one stop bit
+	UBRR0H = (F_CPU/(BDRATE_BAUD*16L)-1) >> 8;
+	UBRR0L = (F_CPU/(BDRATE_BAUD*16L)-1);
+	UCSR0B = _BV(RXEN0)|_BV(TXEN0);
+	UCSR0C = _BV(UCSZ00)|_BV(UCSZ01);
+	
+}
+
+void Transfer_numb(const uint16_t Controldata)
+{
+	// output the 5 bits data through UDR0
+	while (!(UCSR0A & _BV(UDRE0)));
+	UDR0 = Controldata;
 }		
 			
 		
