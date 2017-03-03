@@ -4,11 +4,12 @@ http://diydrones.com/profiles/blogs/decoding-multichannel-ppm
 
 #include <avr/io.h>
 #include <avr/interrupt.h>
-#include <util/twi.h>
+#include <util/delay.h>
 
 #ifndef F_CPU
 #define F_CPU 12000000UL
 #endif
+#define BDRATE_BAUD 9600
 
 #define MIN_SYNC_LEN 4000L
 #define MIN_PULSE_LEN 800L
@@ -25,13 +26,12 @@ http://diydrones.com/profiles/blogs/decoding-multichannel-ppm
 #define MAX_NUM_INVALID_FRAMES 4 // number of invalid frames required to switch to NORC
 
 
-uint16_t inPW[NUM_PULSE_PER_FRAME]; // servo values from R/C receiver
+uint16_t inPW[NUM_PULSE_PER_FRAME] ; // servo values from R/C receiver
 uint16_t digitalData[NUM_PULSE_PER_FRAME]; // 5 bits control data
-uint16_t neutralPW[NUM_PULSE_PER_FRAME] = NEUTRAL_PULSE_LEN; // neutral servo values
+uint16_t neutralPW[NUM_PULSE_PER_FRAME]; // neutral servo values AKA central positions
 uint16_t stat[NUM_PULSE_PER_FRAME];
 
-
-uint16_t DecimaltoBinary(const uint8_t Decnumber)
+uint16_t DecimalToBinary(const uint8_t Decnumber)
 {
 	uint16_t Result = 0;
 	uint8_t i = 1;
@@ -43,6 +43,22 @@ uint16_t DecimaltoBinary(const uint8_t Decnumber)
 	}
 	return Result;
 }
+void init_stdio2uart0(void)
+{
+	// configure UART0 baud rate, one start bit, 8-bit, no parity and one stop bit
+	UBRR0H = (F_CPU/(BDRATE_BAUD*16L)-1) >> 8;
+	UBRR0L = (F_CPU/(BDRATE_BAUD*16L)-1);
+	UCSR0B = _BV(RXEN0)|_BV(TXEN0);
+	UCSR0C = _BV(UCSZ00)|_BV(UCSZ01);
+	
+}
+
+void Transfer_numb(const uint16_t Controldata)
+{
+	// output the 5 bits data through UDR0
+	while (!(UCSR0A & _BV(UDRE0)));
+	UDR0 = Controldata;
+}
 static inline uint8_t ValidPulseLen (const uint16_t pulseLen)
 {
 	return (pulseLen > MIN_PULSE_LEN && pulseLen < MAX_PULSE_LEN);
@@ -50,6 +66,7 @@ static inline uint8_t ValidPulseLen (const uint16_t pulseLen)
 
 int main(void)
 {
+	
 	uint8_t i;
 	uint16_t lastIcrTime = 0;
 	uint8_t inPulseCount = 0;
@@ -58,7 +75,10 @@ int main(void)
 	
 	uint8_t validSync = 0;
 	
-	
+	// Initiate the servo values with neutral values
+	for (i=0;i< NUM_PULSE_PER_FRAME;i++) {
+		inPW[i] = NEUTRAL_PULSE_LEN;
+	}
 	// Power and noise reduction
 	PRR = _BV(PRTIM2)|_BV(PRTIM0)|_BV(PRSPI)|_BV(PRUSART0)|_BV(PRADC);
 	
@@ -89,26 +109,14 @@ int main(void)
 		}
 		
 		for (i=0; i<=NUM_PULSE_PER_FRAME;i++) {
-			digitalData[i] = DecimalToBinary(inPW[i]-800)/44
+			digitalData[i] = DecimalToBinary((inPW[i]-800)/44);
 		} // convert into 5 bits data
+		for (i=0; i<=NUM_PULSE_PER_FRAME;) {
+		Transfer_numb(digitalData[i]);
+		} // sending 5-bit binary through UDR0
 	}
 }
-void init_stdio2uart0(void)
-{
-	// configure UART0 baud rate, one start bit, 8-bit, no parity and one stop bit
-	UBRR0H = (F_CPU/(BDRATE_BAUD*16L)-1) >> 8;
-	UBRR0L = (F_CPU/(BDRATE_BAUD*16L)-1);
-	UCSR0B = _BV(RXEN0)|_BV(TXEN0);
-	UCSR0C = _BV(UCSZ00)|_BV(UCSZ01);
-	
-}
 
-void Transfer_numb(const uint16_t Controldata)
-{
-	// output the 5 bits data through UDR0
-	while (!(UCSR0A & _BV(UDRE0)));
-	UDR0 = Controldata;
-}		
 			
 		
 		
