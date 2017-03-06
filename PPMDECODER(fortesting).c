@@ -3,7 +3,6 @@ http://diydrones.com/profiles/blogs/decoding-multichannel-ppm
 */
 
 #include <avr/io.h>
-#include <avr/interrupt.h>
 #include <util/delay.h>
 
 #ifndef F_CPU
