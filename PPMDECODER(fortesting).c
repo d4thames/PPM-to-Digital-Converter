@@ -97,7 +97,7 @@ int main(void)
 	// Power and noise reduction
 	PRR = _BV(PRTIM2)|_BV(PRTIM0)|_BV(PRSPI)|_BV(PRUSART0)|_BV(PRADC);
 	
-	DDRD = 0b01000000; //PD6 as input (ICP1)
+	DDRD = 0x00; //PD6 as input (ICP1)
 	
 	ICR1 = 0;
 	
